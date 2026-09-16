@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>안전 점검 입력 시스템</title>
+    <!-- 모바일 환경을 위한 Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; padding: 20px; }
+        .container { max-width: 600px; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .form-label { font-weight: bold; color: #333; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 class="mb-4 text-center">안전 점검 데이터 입력</h2>
+    
+    <!-- form 태그 구성 -->
+    <form id="safetyForm">
+        <div class="mb-3">
+            <label class="form-label">점검 날짜</label>
+            <input type="date" class="form-control" name="date" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">분류</label>
+            <select class="form-select" name="category" required>
+                <option value="">선택하세요</option>
+                <option value="Full Process">Full Process</option>
+                <option value="개선제안">개선제안</option>
+                <option value="Follow Sop">Follow SOP</option>
+                <option value="위험성평가">위험성평가</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">발생 현장</label>
+            <select class="form-select" name="site" required>
+                <option value="">선택하세요</option>
+                <option value="기흥,화성 대기방지">기흥,화성 대기방지</option>
+                <option value="기흥,화성 FT직발">기흥,화성 FT직발</option>
+                <option value="평택 FT직발">평택 FT직발</option>
+                <option value="평택 대기방지">평택 대기방지</option>
+            </select>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">담당 팀</label>
+                <input type="text" class="form-control" name="team" placeholder="예: OOO 팀" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">대상자 이름</label>
+                <input type="text" class="form-control" name="name" required>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">상세 장소</label>
+                <input type="text" class="form-control" name="location" placeholder="예: 1L 기계실" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">공정명</label>
+                <input type="text" class="form-control" name="process" placeholder="예: 덕트설치" required>
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">불합리 유형</label>
+            <select class="form-select" name="issue_type" required>
+                <option value="">선택하세요</option>
+                <option value="MSDS 미 비치">MSDS 미 비치</option>
+                <option value="SOP 개정미흡">SOP 개정미흡</option>
+                <option value="보호구 착용 불량">보호구 착용 불량</option>
+                <option value="작업구획 미설정">작업구획 미설정</option>
+                <option value="카디널룰 위반">카디널룰 위반</option>
+                <option value="불안전한 행동">불안전한 행동</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">상세 내용 및 종사자 의견(VOC)</label>
+            <textarea class="form-control" name="description" rows="3" placeholder="적발 내용이나 개선 제안 내용을 상세히 적어주세요." required></textarea>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label">건수</label>
+                <input type="number" class="form-control" name="count" value="1" required>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label">부여 점수 (해당시)</label>
+                <input type="number" class="form-control" name="score" placeholder="예: 65">
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-2 mt-2">데이터 전송 및 저장</button>
+    </form>
+</div>
+
+<script>
+    // https://script.google.com/macros/s/AKfycby7fmSuthOCA4BlQvbHdmMB7x4sSXpsT2HAA2Q1BJE8IXImLa-r5IGxatElgB3U2Plb/exec
+    const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL';
+    const form = document.forms['safetyForm'];
+
+    // 오늘 날짜 자동 세팅
+    document.querySelector('input[name="date"]').value = new Date().toISOString().substring(0, 10);
+
+    form.addEventListener('submit', e => {
+        e.preventDefault(); // 기본 제출 새로고침 방지
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.innerText = '저장 중입니다...';
+
+        fetch(scriptURL, { method: 'POST', body: new FormData(form)})
+            .then(response => {
+                alert('안전 점검 데이터가 성공적으로 등록되었습니다.');
+                form.reset();
+                document.querySelector('input[name="date"]').value = new Date().toISOString().substring(0, 10);
+            })
+            .catch(error => {
+                console.error('Error!', error.message);
+                alert('전송 중 오류가 발생했습니다.');
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerText = '데이터 전송 및 저장';
+            });
+    });
+</script>
+</body>
+</html>
